@@ -1,18 +1,22 @@
 #! /usr/bin/perl
-# Question: 4a
+# Percolation question 1
 use Data::Dumper;
 #Initializing parameters
-$n = 100; $m = 10; 
-$a = 5; $b = 8; # 2 random vertices
+$n = 200; $m = 50; 
+$a = 23; $b = 84; # 2 random vertices
+$simTimes = 100; # number of simulation
 
 # run the simulation for all possible p values
 # p is connected probability
-for($p = 0; $p < 1.01; $p = $p + 0.01) {
+
+open(DATA, ">output.txt") or die "Couldn't open file file.txt, $!";
+
+for($p = 0; $p < 1.01; $p += 0.01) {
 	$sum = 0;
 	# simulate 100 times
-	for (my $iteration = 0; $iteration < 100; $iteration++) {
-		%nodeGraph = ();# adjacency list
-		%nodeConnGraph = ();# connected adjacency list
+	for (my $iteration = 0; $iteration < $simTimes; $iteration++) {
+		%adjList = (); # adjacency list
+		%connList = (); # connected adjacency list
 		my $connected = 0;
 		
 		# build adjacency list
@@ -22,17 +26,17 @@ for($p = 0; $p < 1.01; $p = $p + 0.01) {
 			# choose m neighbors
 			my $counter = $m;
 			while ($counter > 0) {
-				my $nearby = int(rand($n));
+				my $randomNode = int(rand($n));
 				# keep generating different random vertex
-				while (($nearby == $currentNode) || 
-				($nearby ~~ @nodeNeighbors)) {
-					$nearby = int(rand($n));
+				while (($randomNode == $currentNode) || 
+				($randomNode ~~ @nodeNeighbors)) {
+					$randomNode = int(rand($n));
 				}
-				push @nodeNeighbors, $nearby;
+				push @nodeNeighbors, $randomNode;
 				$counter = $counter - 1;
 			}
 			# key is vertex index, value is its neighbors
-			$nodeGraph{$i} = \@nodeNeighbors;
+			$adjList{$i} = \@nodeNeighbors;
 		}
 
 		# build connected adjacency list
@@ -40,15 +44,16 @@ for($p = 0; $p < 1.01; $p = $p + 0.01) {
 			# no connected, build an empty list for each vertex
 			my @connectedNeighbors = ();
 			for (my $temp = 0; $temp < $n; $temp++) {
-				$nodeConnGraph{$i} = \@connectedNeighbors;
+				$connList{$i} = \@connectedNeighbors;
 			}
 		} elsif ($p eq 1) {
 			# all connected, use adjacency list
-			%nodeConnGraph = %nodeGraph;
+			%connList = %adjList;
 		} else {
-			for (my $temp = 0; $temp < $n; $temp++) {
-				my $key = $temp;
-				my @value = @{$nodeGraph{$key}};
+			# check all the involved neighbors to see the connectivity
+			for (my $j = 0; $j < $n; $j++) {
+				my $key = $j;
+				my @value = @{$adjList{$key}};
 				my @connectedNeighbors = ();
 				while($nearby = shift @value) {
 					my $randomNumber = rand();
@@ -57,17 +62,17 @@ for($p = 0; $p < 1.01; $p = $p + 0.01) {
 						push @connectedNeighbors, $nearby;
 					}
 				}
-				$nodeConnGraph{$key} = \@connectedNeighbors;
+				$connList{$key} = \@connectedNeighbors;
 			}
 		}
 
 		# check the connectivity of a random vertex a
-		@nodeQueue = @{$nodeConnGraph{$a}};
-		$queueSize = @nodeQueue;
+		@neighbors = @{$connList{$a}};
+		$queueSize = @neighbors;
 		@visitedNodes = ();
 		while($queueSize > 0) {
 			# dump one of a's neighbor as element
-			my $element = shift @nodeQueue;
+			my $element = shift @neighbors;
 			# mark it as visited
 			push @visitedNodes, $element;
 			if ($element eq $b) {
@@ -75,7 +80,7 @@ for($p = 0; $p < 1.01; $p = $p + 0.01) {
 				$connected = 1;
 				last;
 			} else {
-				my @elementConnections = @{$nodeConnGraph{$element}};
+				my @elementConnections = @{$connList{$element}};
 				# scan the neighbors of one of this a's neighbor
 				while ($tempNode = shift @elementConnections) {
 =begin 
@@ -84,16 +89,21 @@ for($p = 0; $p < 1.01; $p = $p + 0.01) {
 =cut 
 					if($tempNode ~~ @visitedNodes) {}
 					else {
-						push @nodeQueue, $tempNode;
+						push @neighbors, $tempNode;
 					}
 				}
 			}
-			$queueSize = @nodeQueue;
+			$queueSize = @neighbors;
 		}
 		# total times when a and b are connected
-		$sum = $sum + $connected;
+		$sum += $connected;
 	}
 	# after 100 simulations, calculate the connection probability
 	$probability = $sum / 100;
-	print "$p, $probability\n";
+	print "p: $p, probability of a-b connectivity: $probability\n";
+	print DATA "$p\t$probability\n";
 }
+
+close(DATA) || die "Couldn't close file properly";
+
+print "\nFinish simulation, please check the output.txt file\n";
