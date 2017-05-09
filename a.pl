@@ -1,8 +1,8 @@
 #! /usr/bin/perl
 # Percolation question 1
 use Data::Dumper;
-#Initializing parameters
-$n = 200; $m = 50; 
+# Inputs Initialization
+$n = 100; $m = 10; 
 $a = 23; $b = 84; # 2 random vertices
 $simTimes = 100; # number of simulation
 
@@ -11,7 +11,7 @@ $simTimes = 100; # number of simulation
 
 open(DATA, ">output.txt") or die "Couldn't open file file.txt, $!";
 
-for($p = 0; $p < 1.01; $p += 0.01) {
+for($p = 0; $p <= 1; $p += 0.01) {
 	$sum = 0;
 	# simulate 100 times
 	for (my $iteration = 0; $iteration < $simTimes; $iteration++) {

@@ -1,69 +1,92 @@
 #! /usr/bin/perl
-#Question: 4b
+# Percolation question 2
 use Math::Trig;
 use Math::Complex;
-#Initializing Parameters
-$towerRadius = 1; $UserNumber = 90; $towerX = 0; $towerY = 0;
-for (my $q=0;$q<($towerRadius+0.01);$q=$q+0.01) {
-$sum = 0;
-for (my $iteration=0;$iteration<100;$iteration++) {
-@userX = ();
-@userY = ();
-for (my $i=0;$i<$UserNumber;$i=$i+1) {
-$t = 2*pi*rand($towerRadius);
-$u = rand($towerRadius) + rand($towerRadius);
-if ($u>1) {
-$r = 2 - $u;
-} else {
-$r = $u;
+# Inputs Initialization
+$r = 1; $n = 10;
+$simTimes = 100; # number of simulation
+
+# run the simulation for all possible q values
+# q is valid distance
+
+open(DATA, ">output2.txt") or die "Couldn't open file file.txt, $!";
+
+for (my $q = 0; $q <= $r; $q += 0.01) {
+	$sum = 0;
+	# simulate 100 times
+	for (my $iteration = 0; $iteration < $simTimes; $iteration++) {
+		# build coordinate list
+		@userX = ();
+		@userY = ();
+		for (my $i = 0; $i < $n; $i++) {
+			$theta = 2 * pi * rand($r); # degree of current user
+			# generate a random coordinate x-y pair
+			my $tempR = 0;
+			$u = rand($r) + rand($r);
+			if ($u > $r) {
+				$tempR = 2 - $u;
+			} else {
+				$tempR = $u;
+			}
+			$tempVarX = $tempR * cos($theta);
+			$tempVarY = $tempR * sin($theta);
+			push(@userX, $tempVarX);
+			push(@userY, $tempVarY);
+		}
+
+		my @connX = (); # connected list of X coordinate
+		my @connY = (); # connected list of Y coordinate
+		my $conn = 0; # counter of connected users
+		my @locations = (); # connected list
+
+		# check the valid users
+		for (my $i = 0; $i < $n; $i++) {
+			$tempVarX = $userX[$i];
+			$tempVarY = $userY[$i];
+			# compute the distance from the origin
+			$dist = sqrt(($tempVarX * $tempVarX) + ($tempVarY * $tempVarY));
+			if($dist <= $q) {
+				push(@connX, $tempVarX);
+				push(@connY, $tempVarY);
+				$conn++;
+				push(@locations, $i);
+			}
+		}
+
+		# check the connectivity of the entire graph
+		my $sizeConn = @connX;
+		while ($sizeConn > 0) {
+			$tempVarX = $connX[0];
+			$tempVarY = $connY[0];
+			for (my $i = 0; $i < $n; $i++) {
+				if($i ~~ @locations) {} 
+				else {
+					$tempVar2X = $userX[$i];
+					$tempVar2Y = $userY[$i];
+					$xDist = $tempVarX - $tempVar2X;
+					$yDist = $tempVarY - $tempVar2Y;
+					$dist = sqrt(($xDist * $xDist) + ($yDist * $yDist));
+					if($dist <= $q) {
+						push(@connX, $tempVar2X);
+						push(@connY, $tempVar2Y);
+						$conn++;
+						push(@locations, $i);
+					}
+				}
+			}
+			shift(@connX);
+			shift(@connY);
+			$sizeConn = @connX;
+		}
+		# total times when a and b are connected
+		$sum = $sum + $conn;
+	}
+	# after 100 simulations, calculate the connection probability
+	$probability = $sum / (100 * $n);
+	print "q: $q, probability of communication: $probability\n";
+	print DATA "$q\t$probability\n";
 }
-$tempVarX = $r*cos($t);
-$tempVarY = $r*sin($t);
-push(@userX, $tempVarX);
-push(@userY, $tempVarY);
-}
-my @touchX = ();
-my @touchY = ();
-my $touch = 0;
-my @locations = ();
-for (my $i=0;$i<$UserNumber;$i=$i+1) {
-$tempVarX = $userX[$i];
-$tempVarY = $userY[$i];
-$dist =
-sqrt(($tempVarX*$tempVarX)+($tempVarY*$tempVarY));
-if($dist <= $q) {
-push(@touchX, $tempVarX);
-push(@touchY, $tempVarY);
-$touch = $touch+1;
-push(@locations, $i);
-}
-}
-my $sizeConn = @touchX;
-while ($sizeConn > 0) {
-$tempVarX = $touchX[0];
-$tempVarY = $touchY[0];
-for (my $i=0;$i<$UserNumber;$i=$i+1) {
-if($i ~~ @locations) {
-} else {
-$tempVar2X = $userX[$i];
-$tempVar2Y = $userY[$i];
-$xDist = $tempVarX - $tempVar2X;$yDist = $tempVarY - $tempVar2Y;
-$dist =
-sqrt(($xDist*$xDist)+($yDist*$yDist));
-if($dist <= $q) {
-push(@touchX, $tempVar2X);
-push(@touchY, $tempVar2Y);
-$touch = $touch+1;
-push(@locations, $i);
-}
-}
-}
-shift(@touchX);
-shift(@touchY);
-$sizeConn = @touchX;
-}
-$sum = $sum + $touch;
-}
-$probability = ($sum)/(100*$UserNumber);
-print "$q,$probability\n";
-}
+
+close(DATA) || die "Couldn't close file properly";
+
+print "\nFinish simulation, please check the output.txt file\n";

@@ -46,7 +46,9 @@ foreach (sort keys %table) {
 
 $q_size = @queue;
 
-print "$q_size";
+print "$q_size\n";
+
+print "$(rand(1))";
 
 sub print_array {
 	my @list = @_;
