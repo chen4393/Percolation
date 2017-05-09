@@ -13,7 +13,7 @@ open(DATA, ">output2.txt") or die "Couldn't open file file.txt, $!";
 
 for (my $q = 0; $q <= $r; $q += 0.01) {
 	$sum = 0;
-	# simulate 100 times
+	# simulate $simTimes times
 	for (my $iteration = 0; $iteration < $simTimes; $iteration++) {
 		# build coordinate list
 		@userX = ();
@@ -81,8 +81,8 @@ for (my $q = 0; $q <= $r; $q += 0.01) {
 		# total times when a and b are connected
 		$sum = $sum + $conn;
 	}
-	# after 100 simulations, calculate the connection probability
-	$probability = $sum / (100 * $n);
+	# after $simTimes simulations, calculate the connection probability
+	$probability = $sum / ($simTimes * $n);
 	print "q: $q, probability of communication: $probability\n";
 	print DATA "$q\t$probability\n";
 }
